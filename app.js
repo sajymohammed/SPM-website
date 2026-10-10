@@ -26,25 +26,26 @@ const im=p=>{const s=IMG[p.image];return s?`<img class="th" loading="lazy" src="
 const dl=p=>loc(p,'delivery')?`<p>${t('delivery')}: ${esc(loc(p,'delivery'))}</p>`:'';
 const pub=async c=>{try{const s=await getDocs(query(collection(db,c),where('published','==',true)));return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0))}catch{return[]}};
 async function img(id){if(!id)return'';if(id in IMG)return IMG[id];try{const s=await getDoc(doc(db,'images',id));IMG[id]=s.exists()?s.data().data:''}catch{IMG[id]=''}return IMG[id]}
-const act=a=>{const td=new Date().toISOString().slice(0,10);return a.filter(p=>(!isD(p.start)||p.start<=td)&&(!isD(p.end)||p.end>=td))};
+const nd=s=>{s=String(s||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[\/.]/g,'-');let m=s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');m=s.match(/(\d{1,2})-(\d{1,2})-(\d{4})/);return m?m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'):''};
+const act=a=>{const d=new Date(),td=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return a.filter(p=>{const s=nd(p.start),e=nd(p.end);return(!s||s<=td)&&(!e||e>=td)})};
 const head=(h,s)=>`<section class="ph"><h1>${h}</h1>${s?`<p class="note">${s}</p>`:''}</section>`,empty=k=>`<p class="empty">${t(k)}</p>`;
-const pc=p=>{return `<article class="card">${im(p)}<h3>${esc(p.name)}</h3><p>${esc(loc(p,'short'))}</p>${(p.tech||'').split(',').filter(x=>x.trim()).map(x=>`<span class="tag">${esc(x.trim())}</span>`).join('')}${/^https?:\/\//.test(p.demoUrl||'')?`<p><a href="${esc(p.demoUrl)}" target="_blank" rel="noopener">${t('demo')}</a></p>`:''}</article>`};
+const pc=p=>{return `<article class="card clk" data-pj="${p.id}" tabindex="0" role="button">${im(p).replace('class="th"','class="th ct"')}<h3>${esc(p.name)}</h3><p>${esc(loc(p,'short'))}</p>${(p.tech||'').split(',').filter(x=>x.trim()).map(x=>`<span class="tag">${esc(x.trim())}</span>`).join('')}${/^https?:\/\//.test(p.demoUrl||'')?`<p><a href="${esc(p.demoUrl)}" target="_blank" rel="noopener">${t('demo')}</a></p>`:''}<p style="color:var(--cyan);font-size:.9rem">${t('details')}</p></article>`};
 const sc=p=>`<article class="card">${im(p)}<div style="font-size:2rem">${esc(p.icon||'')}</div><h3>${esc(loc(p,'title'))}</h3><p>${esc(loc(p,'desc'))}</p>${ul(LN(loc(p,'features')))}${p.startPrice?`<p>${t('from')} <b>${esc(p.startPrice)}</b></p>`:''}${dl(p)}<p><a class="btn s" href="/request">${t('order_now')}</a></p></article>`;
-const pk=p=>`<article class="card">${im(p)}${loc(p,'badge')?`<span class="tag">${esc(loc(p,'badge'))}</span>`:''}<h3>${esc(loc(p,'name'))}</h3><p>${esc(loc(p,'desc'))}</p><p class="price">${p.customQuote||blank(p.price)?t('custom_quote'):`<small class="old">${t('from')}</small> ${money(p.price,p.currency)}${p.oldPrice?` <s class="old">${money(p.oldPrice,p.currency)}</s>`:''}`}</p>${ul(LN(loc(p,'features')))}${dl(p)}${!blank(p.revisions)?`<p>${t('revisions')}: ${esc(p.revisions)}</p>`:''}<p><a class="btn s" href="/request">${t('order_now')}</a></p></article>`;
+const pk=p=>`<article class="card">${im(p)}${p.icon?`<div style="font-size:2rem">${esc(p.icon)}</div>`:''}${loc(p,'badge')?`<span class="tag">${esc(loc(p,'badge'))}</span>`:''}<h3>${esc(loc(p,'name'))}</h3><p>${esc(loc(p,'desc'))}</p><p class="price">${p.customQuote||blank(p.price)?t('custom_quote'):`<small class="old">${t('from')}</small> ${money(p.price,p.currency)}${p.oldPrice?` <s class="old">${money(p.oldPrice,p.currency)}</s>`:''}`}</p>${ul(LN(loc(p,'features')))}${dl(p)}${!blank(p.revisions)?`<p>${t('revisions')}: ${esc(p.revisions)}</p>`:''}<p><a class="btn s" href="/request">${t('order_now')}</a></p></article>`;
 const pm=p=>`<article class="card">${im(p)}<h3>${esc(loc(p,'title'))}</h3><p>${esc(loc(p,'desc'))}</p>${!blank(p.percent)?`<p class="price">${isN(String(p.percent).replace(/%$/,''))?esc(String(p.percent).trim().replace(/%$/,''))+'% '+t('off'):esc(p.percent)}</p>`:!blank(p.fixed)?`<p class="price">${isN(p.fixed)?money(p.fixed,'EGP')+' '+t('off'):esc(p.fixed)}</p>`:''}${p.coupon?`<p>${t('coupon')}: <b dir="ltr">${esc(p.coupon)}</b></p>`:''}${p.end?`<p>${isD(p.end)?t('until')+' ':''}${esc(p.end)}</p>`:''}${loc(p,'terms')?`<p>${t('terms')}: ${esc(loc(p,'terms'))}</p>`:''}</article>`;
 const grid=(a,f,k)=>a.length?`<div class="grid">${a.map(f).join('')}</div>`:empty(k);
-const TL=[['request','🚀','nav_request',1],['services','🛠️','services_h'],['pricing','💰','pricing_h'],['projects','🖼️','projects_h'],['offers','🎁','promos_h'],['track','🔎','track_h'],['about','ℹ️','about_h'],['faq','❓','faq_h'],['contact','✉️','contact_h']];
+const TL=[['request','🚀','nav_request',1],['packages','📦','pk_h'],['projects','🖼️','projects_h'],['offers','🎁','promos_h'],['track','🔎','track_h'],['about','ℹ️','about_h'],['faq','❓','faq_h'],['contact','✉️','contact_h']];
+const off={packages:()=>SI.showPricing===false,about:()=>SI.showAbout===false,faq:()=>SI.showFaq===false},hid=x=>off[x]&&off[x]();
 const sorted=()=>(D.projects||[]).slice().sort((a,b)=>(b.featured?1:0)-(a.featured?1:0)||(a.order||0)-(b.order||0));
 const TY=['web','biz','pwa','soft','game','other'];
 const P={
 index:()=>{const ft=sorted().filter(p=>p.featured).slice(0,3),hp=act(D.promotions||[]).filter(p=>p.onHome);
 return `<div class="hero"><img src="/logo-circle.png" alt="Shadow Projects Making"><h1>${t('welcome')}</h1><p class="q">${t('help')}</p><p style="color:var(--cyan);font-weight:700">${esc(loc(SI,'tagline')||t('hero_tag'))}</p><p>${esc(loc(SI,'heroP')||t('hero_p'))}</p></div>
-<section><div class="tiles">${TL.map(([p,ic,k,pr])=>`<a class="tile${pr?' pri':''}" href="/${p}"><span class="ic">${ic}</span><b>${t(k)}</b><small>${t('d_'+(p==='request'?'request':p))}</small></a>`).join('')}</div></section>
+<section><div class="tiles">${TL.filter(x=>!hid(x[0])).map(([p,ic,k,pr])=>`<a class="tile${pr?' pri':''}" href="/${p}"><span class="ic">${ic}</span><b>${t(k)}</b><small>${t('d_'+(p==='request'?'request':p))}</small></a>`).join('')}</div></section>
 ${hp.length?`<section><h2>${t('offers_now')}</h2><div class="grid">${hp.map(pm).join('')}</div></section>`:''}
 ${ft.length?`<section><h2>${t('feat_h')}</h2><div class="grid">${ft.map(pc).join('')}</div><p style="margin-top:14px"><a class="btn o s" href="/projects">${t('view_all')}</a></p></section>`:''}`},
 projects:()=>head(t('projects_h'),t('d_projects'))+grid(sorted(),pc,'empty'),
-services:()=>head(t('services_h'),t('d_services'))+grid(D.services||[],sc,'no_services'),
-pricing:()=>head(t('pricing_h'),t('price_note'))+grid(D.packages||[],pk,'no_pk'),
+packages:()=>head(t('pk_h'),t('price_note'))+grid(D.packages||[],pk,'no_pk'),
 offers:()=>head(t('promos_h'),t('d_offers'))+grid(act(D.promotions||[]),pm,'no_offers'),
 faq:()=>head(t('faq_h'),t('d_faq'))+((D.faqs||[]).length?`<div style="max-width:720px">${D.faqs.map(p=>`<details><summary>${esc(loc(p,'q'))}</summary>${im(p)}<p>${esc(loc(p,'a'))}</p></details>`).join('')}</div>`:empty('no_faq')),
 about:()=>{const a=[IMG[SI.aboutImage]&&`<img class="th" style="max-width:420px" src="${esc(IMG[SI.aboutImage])}" alt="">`,loc(SI,'about')&&`<p>${esc(loc(SI,'about'))}</p>`,loc(SI,'mission')&&`<h3>${t('mission')}</h3><p>${esc(loc(SI,'mission'))}</p>`,LN(loc(SI,'values')).length&&`<h3>${t('values')}</h3>${ul(LN(loc(SI,'values')))}`,LN(loc(SI,'workflow')).length&&`<h3>${t('workflow')}</h3><ol>${LN(loc(SI,'workflow')).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`,SI.skills&&`<h3>${t('skills')}</h3>${SI.skills.split(',').filter(x=>x.trim()).map(x=>`<span class="tag">${esc(x.trim())}</span>`).join('')}`].filter(Boolean).join('');
@@ -67,7 +68,7 @@ request:()=>head(t('req_h'),t('req_p'))+`<form id="rf" novalidate>
 <div id="fm" role="status"></div><button class="btn">${t('send')}</button></form>`,
 track:()=>head(t('track_h'),t('track_p'))+`<form id="tf"><label>${t('track_ph')}<input id="tid" dir="ltr" maxlength="40" autocomplete="off"></label><button class="btn">${t('track_btn')}</button></form><div id="tr" role="status" style="margin-top:16px"></div>`};
 const soc=()=>[['Instagram',SI.instagram||'https://www.instagram.com/shadowprojectsmaking'],['Facebook',SI.facebook],['X',SI.x],['YouTube',SI.youtube],['TikTok',SI.tiktok],['LinkedIn',SI.linkedin]].filter(([,u])=>/^https?:\/\//.test(u||'')).map(([n,u])=>`<a class="btn o s" href="${esc(u)}" target="_blank" rel="noopener">${n}</a>`).join('');
-const NV=[['services','services_h'],['pricing','pricing_h'],['projects','projects_h'],['offers','promos_h'],['request','nav_request'],['track','track_h'],['about','about_h'],['faq','faq_h'],['contact','contact_h']];
+const NV=[['packages','pk_h'],['projects','projects_h'],['offers','promos_h'],['request','nav_request'],['track','track_h'],['about','about_h'],['faq','faq_h'],['contact','contact_h']];
 function bindRequest(keep){const f=$('#rf');if(keep)for(const[k,v]of Object.entries(keep)){const e=f.elements[k];if(e&&k!=='website'){if(e.type==='checkbox')e.checked=true;else e.value=v}}
 f.addEventListener('submit',async e=>{e.preventDefault();const m=$('#fm'),b=f.querySelector('button'),v=n=>f.elements[n].value.trim();m.className='';m.textContent='';
 if(f.elements.website.value)return;
@@ -87,18 +88,29 @@ const d=s.data(),st=['new','reviewing','inprogress','completed','rejected'].incl
 o.innerHTML=`<div class="card"><h3>${esc(d.title||'')}</h3><span class="st s-${st}">${t('st_'+st)}</span><p style="margin-top:8px">${t('st_'+st+'_d')}</p></div>`}catch{o.innerHTML=`<p class="msg er">${t('err_msg')}</p>`}};
 $('#tf').addEventListener('submit',e=>{e.preventDefault();go(inp.value)});
 const q=new URLSearchParams(location.search).get('id')||ls('lastReq')||'';inp.value=q;if(q)go(q)}
-const TK={projects:'projects_h',services:'services_h',pricing:'pricing_h',offers:'promos_h',request:'nav_request',track:'track_h',about:'about_h',faq:'faq_h',contact:'contact_h'};
+const TK={projects:'projects_h',packages:'pk_h',offers:'promos_h',request:'nav_request',track:'track_h',about:'about_h',faq:'faq_h',contact:'contact_h'};
 function render(){const keep=PG==='request'&&$('#rf')?Object.fromEntries(new FormData($('#rf'))):null;I.apply();
-$('#hd').innerHTML=`<header><div class="wrap"><nav aria-label="main"><a class="brand" href="/"><img src="/favicon.png" alt="SPM"><span>SPM</span></a><div class="links">${NV.map(([p,k])=>`<a class="l" href="/${p}"${p===PG?' aria-current="page"':''}>${t(k)}</a>`).join('')}</div><button id="lb" class="btn o s" type="button" aria-label="Language">${I.lang==='ar'?'EN':'عربي'}</button></nav></div></header>`;
-$('#mn').innerHTML=ready?P[PG]():`<p class="empty">${t('loading')}</p>`;
+$('#hd').innerHTML=`<header><div class="wrap"><nav aria-label="main"><a class="brand" href="/"><img src="/favicon.png" alt="SPM"><span>SPM</span></a><div class="links">${NV.filter(x=>!hid(x[0])).map(([p,k])=>`<a class="l" href="/${p}"${p===PG?' aria-current="page"':''}>${t(k)}</a>`).join('')}</div><button id="lb" class="btn o s" type="button" aria-label="Language">${I.lang==='ar'?'EN':'عربي'}</button></nav></div></header>`;
+$('#mn').innerHTML=ready?(hid(PG)?`<p class="empty">${t('no_'+(PG==='packages'?'pk':PG))}</p>`:P[PG]()):`<p class="empty">${t('loading')}</p>`;
 $('#ft').innerHTML=`<footer><div class="wrap"><div class="row2" style="justify-content:center;margin:0 0 12px">${soc()}</div><p>${esc(loc(SI,'footer')||t('rights'))}</p></div></footer>`;
 $('#lb').onclick=()=>{I.setLang(I.lang==='ar'?'en':'ar');render()};
 document.title=TK[PG]?t(TK[PG])+' | SPM':(SI.seoTitle||'Shadow Projects Making (SPM)');
 if(SI.seoDesc)document.querySelector('meta[name=description]').content=SI.seoDesc;
 if(ready&&PG==='request')bindRequest(keep);if(ready&&PG==='track')bindTrack()}
 async function load(){try{const s=await getDoc(doc(db,'site','main'));SI=s.exists()?s.data():{}}catch{SI={}}
-const need={index:['projects','promotions'],projects:['projects'],services:['services'],pricing:['packages'],offers:['promotions'],faq:['faqs']}[PG]||[];
+const need={index:['projects','promotions'],projects:['projects'],packages:['packages'],offers:['promotions'],faq:['faqs']}[PG]||[];
 await Promise.all(need.map(async c=>{D[c]=await pub(c)}));
 await Promise.all([...Object.values(D).flat().map(p=>img(p.image)),img(SI.aboutImage)]);
 if(!ls('lang')&&SI.defaultLang==='en')I.setLang('en');ready=true;render()}
+I.T.ar.pk_h='الباقات';I.T.en.pk_h='Packages';I.T.ar.d_packages='باقاتنا وأسعارها';I.T.en.d_packages='Our packages and prices';
+I.T.ar.repo='الكود المصدري';I.T.en.repo='Source code';I.T.ar.details='التفاصيل ←';I.T.en.details='Details →';
+async function openPj(p){const ids=[p.image,...(p.gallery||[])].filter(Boolean);await Promise.all(ids.map(img));
+const tg=(p.tech||'').split(',').filter(x=>x.trim()).map(x=>`<span class="tag">${esc(x.trim())}</span>`).join(''),dm=/^https?:\/\//.test(p.demoUrl||''),rp=/^https?:\/\//.test(p.repoUrl||'');
+const m=document.createElement('div');m.className='mod';m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');
+m.innerHTML=`<div class="mbox"><button class="btn o s mx" type="button" aria-label="close">✕</button>${ids.some(i=>IMG[i])?`<div class="gal">${ids.map(i=>IMG[i]?`<img src="${esc(IMG[i])}" alt="">`:'').join('')}</div>`:''}<h2>${esc(p.name)}</h2>${p.category?`<span class="tag">${esc(p.category)}</span>`:''}<p style="white-space:pre-wrap;color:var(--mut);margin:8px 0">${esc(loc(p,'desc')||loc(p,'short'))}</p>${tg}<div class="row2">${dm?`<a class="btn s" href="${esc(p.demoUrl)}" target="_blank" rel="noopener">${t('demo')}</a>`:''}${rp?`<a class="btn o s" href="${esc(p.repoUrl)}" target="_blank" rel="noopener">${t('repo')}</a>`:''}</div></div>`;
+document.body.appendChild(m);document.body.style.overflow='hidden';
+const x=()=>{m.remove();document.body.style.overflow='';document.removeEventListener('keydown',k)},k=e=>{if(e.key==='Escape')x()};
+m.onclick=e=>{if(e.target===m||e.target.closest('.mx'))x()};document.addEventListener('keydown',k);m.querySelector('.mx').focus()}
+document.addEventListener('click',e=>{const c=e.target.closest('[data-pj]');if(!c||e.target.closest('a'))return;const p=(D.projects||[]).find(x=>x.id===c.dataset.pj);if(p)openPj(p)});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.pj)e.target.click()});
 render();load();

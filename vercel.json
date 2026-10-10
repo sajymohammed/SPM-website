@@ -1,1 +1,1 @@
-{"cleanUrls":true}
+{"cleanUrls":true,"redirects":[{"source":"/services","destination":"/packages","permanent":true},{"source":"/pricing","destination":"/packages","permanent":true}]}
