@@ -43,3 +43,25 @@ summary{cursor:pointer;font-weight:700}details p{color:var(--mut);margin-top:8px
 .note{color:var(--mut);margin-bottom:14px}
 .card ul,.card ol,#ab ul,#ab ol{padding-inline-start:20px;color:var(--mut);font-size:.92rem;margin:6px 0}
 #ab{max-width:720px}#ab h3{margin:16px 0 4px}#ab p{color:var(--mut)}
+/* responsive: phone / tablet / desktop */
+.links{min-width:0}
+.card,summary,details p,.msg{overflow-wrap:anywhere}
+img{max-width:100%}
+@media(max-width:480px){.brand span{display:none}nav{gap:10px}.hero{padding:40px 0 30px}.btn{padding:10px 18px}}
+@media(pointer:coarse){.btn.s{padding:9px 16px}input,select,textarea{font-size:16px}}
+@media(min-width:760px){
+#rf{grid-template-columns:1fr 1fr;max-width:780px}
+#rf label:has(textarea),#rf .ck,#rf #fm,#rf button{grid-column:1/-1}
+#pf,#gf{max-width:none;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+#pf>div,#gf>div,#gf>h3,#gf>button,#pf>img,#pf>label:has(textarea),#pf>label:has(input[type=file]),#gf>label:has(textarea){grid-column:1/-1}
+}
+@media(min-width:900px){
+.wrap{max-width:1120px;padding:0 28px}
+.hero{display:grid;grid-template-columns:auto 1fr;grid-template-rows:repeat(4,auto);column-gap:56px;align-content:center;text-align:start;padding:80px 0 56px}
+.hero img{grid-row:1/5;align-self:center;width:300px}
+.hero h1{align-self:end;margin:0 0 6px}
+.hero p{margin-inline:0;max-width:520px}
+.hero .row2{justify-content:flex-start;align-self:start}
+section{padding:56px 0}
+}
+@media(min-width:1200px){.grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}}
