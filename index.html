@@ -1,0 +1,84 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shadow Projects Making (SPM)</title>
+<meta name="description" content="SPM - Turning Ideas Into Digital Products">
+<meta property="og:title" content="Shadow Projects Making (SPM)"><meta property="og:description" content="Turning Ideas Into Digital Products"><meta property="og:image" content="/logo-circle.png">
+<link rel="icon" href="/favicon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css"></head><body>
+<header><div class="wrap"><nav aria-label="main"><a class="brand" href="/"><img src="/favicon.png" alt="SPM"><span>SPM</span></a><div class="links"><a class="l" href="#projects" data-i18n="nav_projects"></a><a class="l" href="#services" data-i18n="services_h"></a><a class="l" href="#pricing" data-i18n="pricing_h"></a><a class="l" href="#about" data-i18n="about_h"></a><a class="l" href="#faq" data-i18n="faq_h"></a><a class="l" href="#request" data-i18n="nav_request"></a><a class="l" href="#contact" data-i18n="nav_contact"></a></div>
+<button id="lb" class="btn o s" type="button" aria-label="Language"></button></nav></div></header>
+<main class="wrap">
+<div class="hero"><img src="/logo-circle.png" alt="Shadow Projects Making"><h1>Shadow Projects Making</h1><p id="tg" style="color:var(--cyan);font-weight:700;margin-bottom:6px"></p><p id="hp"></p>
+<div class="row2"><a class="btn" href="#projects" data-i18n="cta1"></a><a class="btn o" href="#request" data-i18n="cta2"></a></div></div>
+<section id="projects"><h2 data-i18n="projects_h"></h2><div id="pj" class="grid"></div></section>
+<section id="services" hidden><h2 data-i18n="services_h"></h2><div id="sv" class="grid"></div></section>
+<section id="pricing" hidden><h2 data-i18n="pricing_h"></h2><p class="note" data-i18n="price_note"></p><div id="pk" class="grid"></div></section>
+<section id="promos" hidden><h2 data-i18n="promos_h"></h2><div id="pm" class="grid"></div></section>
+<section id="about" hidden><h2 data-i18n="about_h"></h2><div id="ab"></div></section>
+<section id="faq" hidden><h2 data-i18n="faq_h"></h2><div id="fq" style="max-width:720px"></div></section>
+<section id="request"><h2 data-i18n="req_h"></h2><p data-i18n="req_p" style="color:var(--mut);margin-bottom:14px"></p>
+<form id="rf" novalidate>
+<label><span data-i18n="f_name"></span><input name="name" maxlength="100" autocomplete="name"></label>
+<label><span data-i18n="f_contact"></span><input name="contact" maxlength="200" autocomplete="email"></label>
+<label><span data-i18n="f_phone"></span><input name="phone" maxlength="30" type="tel" autocomplete="tel"></label>
+<label><span data-i18n="f_type"></span><select id="ty" name="type"></select></label>
+<label><span data-i18n="f_title"></span><input name="title" maxlength="150"></label>
+<label><span data-i18n="f_desc"></span><textarea name="description" maxlength="3000"></textarea></label>
+<label><span data-i18n="f_budget"></span><input name="budget" maxlength="60"></label>
+<label><span data-i18n="f_deadline"></span><input name="deadline" maxlength="60"></label>
+<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<label class="ck"><input type="checkbox" name="consent"><span data-i18n="f_consent"></span></label>
+<div id="fm" role="status"></div><button class="btn" data-i18n="send"></button></form></section>
+<section id="contact"><h2 data-i18n="contact_h"></h2><div id="ct"></div></section>
+</main><footer id="ft"></footer>
+<script type="module">
+import {db,collection,getDocs,getDoc,doc,addDoc,query,where,serverTimestamp} from "/firebase.js";
+import * as I from "/i18n.js";
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let PR=[],IMG={};
+const loc=(p,k)=>(I.lang==='ar'?p[k+'Ar']||p[k+'En']:p[k+'En']||p[k+'Ar'])||'';
+async function img(id){if(!id)return'';if(id in IMG)return IMG[id];try{const s=await getDoc(doc(db,'images',id));IMG[id]=s.exists()?s.data().data:''}catch{IMG[id]=''}return IMG[id]}
+function draw(){$('#pj').innerHTML=PR.length?PR.map(p=>{const im=IMG[p.image];return `<article class="card">${im?`<img class="th" loading="lazy" src="${esc(im)}" alt="${esc(p.name)}">`:''}<h3>${esc(p.name)}</h3><p>${esc(loc(p,'short'))}</p>${(p.tech||'').split(',').filter(x=>x.trim()).map(x=>`<span class="tag">${esc(x.trim())}</span>`).join('')}${/^https?:\/\//.test(p.demoUrl||'')?`<p><a href="${esc(p.demoUrl)}" target="_blank" rel="noopener">${I.t('demo')}</a></p>`:''}</article>`}).join(''):`<p class="empty">${I.t('empty')}</p>`}
+async function load(){try{const s=await getDocs(query(collection(db,'projects'),where('published','==',true)));PR=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.featured?1:0)-(a.featured?1:0)||(a.order||0)-(b.order||0));await Promise.all(PR.map(p=>img(p.image)));draw()}catch{$('#pj').innerHTML=`<p class="msg er">${I.t('load_err')}</p>`}}
+function labels(){const v=$('#ty').value;I.apply();$('#lb').textContent=I.lang==='ar'?'EN':'عربي';$('#ty').innerHTML=['web','biz','pwa','soft','game','other'].map(k=>`<option value="${k}">${I.t('t_'+k)}</option>`).join('');if(v)$('#ty').value=v}
+$('#lb').onclick=()=>{I.setLang(I.lang==='ar'?'en':'ar');labels();drawAll()};
+const ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch{return null}};
+$('#rf').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,m=$('#fm'),b=f.querySelector('button'),v=n=>f.elements[n].value.trim();m.className='';m.textContent='';
+if(f.elements.website.value)return;
+const er=v('name').length<2?'v_name':v('contact').length<3?'v_contact':v('title').length<3?'v_title':v('description').length<10?'v_desc':!f.elements.consent.checked?'v_consent':'';
+if(er){m.className='msg er';m.textContent=I.t(er);return}
+if(Date.now()-(+ls('lr')||0)<60000){m.className='msg er';m.textContent=I.t('wait');return}
+b.disabled=true;b.textContent=I.t('sending');
+const d={name:v('name'),contact:v('contact'),type:f.elements.type.value,title:v('title'),description:v('description'),consent:true,status:'new',lang:I.lang,createdAt:serverTimestamp()};
+for(const k of['phone','budget','deadline'])if(v(k))d[k]=v(k);
+try{const r=await addDoc(collection(db,'projectRequests'),d);ls('lr',Date.now());f.reset();m.className='msg ok';m.textContent=I.t('ok_msg')+' '+r.id}catch{m.className='msg er';m.textContent=I.t('err_msg')}
+b.disabled=false;b.textContent=I.t('send')});
+Object.assign(I.T.ar,{services_h:"الخدمات",pricing_h:"الأسعار والباقات",promos_h:"العروض",about_h:"عن SPM",faq_h:"الأسئلة الشائعة",mission:"رسالتنا",values:"قيمنا",workflow:"طريقة العمل",skills:"المهارات والتقنيات",price_note:"السعر النهائي يعتمد على متطلبات المشروع وتعقيده ووقت التسليم.",custom_quote:"حسب عرض سعر مخصص",from:"يبدأ من",delivery:"مدة التسليم",revisions:"عدد التعديلات",off:"خصم",coupon:"كوبون",until:"ينتهي في",terms:"الشروط",order_now:"اطلب الآن",email:"البريد",phone:"الهاتف",whatsapp:"واتساب",address:"العنوان"});
+Object.assign(I.T.en,{services_h:"Services",pricing_h:"Pricing and packages",promos_h:"Offers",about_h:"About SPM",faq_h:"FAQ",mission:"Our mission",values:"Our values",workflow:"How we work",skills:"Skills and technologies",price_note:"The final price depends on project requirements, complexity and delivery time.",custom_quote:"Custom quote",from:"Starting from",delivery:"Delivery",revisions:"Revisions",off:"off",coupon:"Coupon",until:"Ends",terms:"Terms",order_now:"Order now",email:"Email",phone:"Phone",whatsapp:"WhatsApp",address:"Address"});
+let SI={},SV=[],PK=[],PM=[],FQ=[];
+const LN=s=>String(s||'').split('\n').map(x=>x.trim()).filter(Boolean),ul=a=>a.length?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+const pub=async c=>{try{const s=await getDocs(query(collection(db,c),where('published','==',true)));return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0))}catch{return[]}};
+const money=(n,c)=>new Intl.NumberFormat(I.lang==='ar'?'ar-EG':'en-US').format(n)+' '+esc(c||'EGP');
+const sh=(id,on)=>{$('#'+id).hidden=!on};
+const dl=p=>loc(p,'delivery')?`<p>${I.t('delivery')}: ${esc(loc(p,'delivery'))}</p>`:'';
+function drawAll(){draw();
+$('#tg').textContent=loc(SI,'tagline')||I.t('hero_tag');$('#hp').textContent=loc(SI,'heroP')||I.t('hero_p');
+$('#ft').textContent=loc(SI,'footer')||I.t('rights');
+if(SI.seoTitle)document.title=SI.seoTitle;if(SI.seoDesc)document.querySelector('meta[name=description]').content=SI.seoDesc;
+$('#sv').innerHTML=SV.map(p=>`<article class="card"><div style="font-size:2rem">${esc(p.icon||'')}</div><h3>${esc(loc(p,'title'))}</h3><p>${esc(loc(p,'desc'))}</p>${ul(LN(loc(p,'features')))}${p.startPrice?`<p>${I.t('from')} <b>${esc(p.startPrice)}</b></p>`:''}${dl(p)}</article>`).join('');
+sh('services',SV.length&&SI.showServices!==false);
+$('#pk').innerHTML=PK.map(p=>`<article class="card">${loc(p,'badge')?`<span class="tag">${esc(loc(p,'badge'))}</span>`:''}<h3>${esc(loc(p,'name'))}</h3><p>${esc(loc(p,'desc'))}</p><p class="price">${p.customQuote||p.price==null?I.t('custom_quote'):`${money(p.price,p.currency)}${p.oldPrice?` <s class="old">${money(p.oldPrice,p.currency)}</s>`:''}`}</p>${ul(LN(loc(p,'features')))}${dl(p)}${p.revisions!=null?`<p>${I.t('revisions')}: ${esc(p.revisions)}</p>`:''}<p><a class="btn s" href="#request">${I.t('order_now')}</a></p></article>`).join('');
+sh('pricing',PK.length&&SI.showPricing!==false);
+const td=new Date().toISOString().slice(0,10),act=PM.filter(p=>p.onHome&&(!p.start||p.start<=td)&&(!p.end||p.end>=td));
+$('#pm').innerHTML=act.map(p=>`<article class="card"><h3>${esc(loc(p,'title'))}</h3><p>${esc(loc(p,'desc'))}</p>${p.percent?`<p class="price">${esc(p.percent)}% ${I.t('off')}</p>`:p.fixed?`<p class="price">${money(p.fixed,'EGP')} ${I.t('off')}</p>`:''}${p.coupon?`<p>${I.t('coupon')}: <b dir="ltr">${esc(p.coupon)}</b></p>`:''}${p.end?`<p>${I.t('until')} ${esc(p.end)}</p>`:''}${loc(p,'terms')?`<p>${I.t('terms')}: ${esc(loc(p,'terms'))}</p>`:''}</article>`).join('');
+sh('promos',act.length);
+const ab=[loc(SI,'about')&&`<p>${esc(loc(SI,'about'))}</p>`,loc(SI,'mission')&&`<h3>${I.t('mission')}</h3><p>${esc(loc(SI,'mission'))}</p>`,LN(loc(SI,'values')).length&&`<h3>${I.t('values')}</h3>${ul(LN(loc(SI,'values')))}`,LN(loc(SI,'workflow')).length&&`<h3>${I.t('workflow')}</h3><ol>${LN(loc(SI,'workflow')).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`,SI.skills&&`<h3>${I.t('skills')}</h3>${SI.skills.split(',').filter(x=>x.trim()).map(x=>`<span class="tag">${esc(x.trim())}</span>`).join('')}`].filter(Boolean).join('');
+$('#ab').innerHTML=ab;sh('about',ab&&SI.showAbout!==false);
+$('#fq').innerHTML=FQ.map(p=>`<details><summary>${esc(loc(p,'q'))}</summary><p>${esc(loc(p,'a'))}</p></details>`).join('');
+sh('faq',FQ.length&&SI.showFaq!==false);
+const wa=(SI.whatsapp||'').replace(/\D/g,''),ad=loc(SI,'address'),so=[['Instagram',SI.instagram||'https://www.instagram.com/shadowprojectsmaking'],['Facebook',SI.facebook],['X',SI.x],['YouTube',SI.youtube],['TikTok',SI.tiktok],['LinkedIn',SI.linkedin]].filter(([,u])=>/^https?:\/\//.test(u||''));
+$('#ct').innerHTML=[SI.email&&SI.email.includes('@')?`<p>${I.t('email')}: <a href="mailto:${esc(SI.email)}">${esc(SI.email)}</a></p>`:'',SI.phone?`<p>${I.t('phone')}: <a dir="ltr" href="tel:${esc(SI.phone.replace(/[^\d+]/g,''))}">${esc(SI.phone)}</a></p>`:'',wa?`<p>${I.t('whatsapp')}: <a dir="ltr" href="https://wa.me/${wa}" target="_blank" rel="noopener">${esc(SI.whatsapp)}</a></p>`:'',ad?`<p>${I.t('address')}: ${esc(ad)}</p>`:'',`<div class="row2">${so.map(([n,u])=>`<a class="btn o s" href="${esc(u)}" target="_blank" rel="noopener">${n}</a>`).join('')}</div>`].join('')}
+async function loadAll(){try{const s=await getDoc(doc(db,'site','main'));SI=s.exists()?s.data():{}}catch{SI={}}
+[SV,PK,PM,FQ]=await Promise.all([pub('services'),pub('packages'),pub('promotions'),pub('faqs')]);
+if(!ls('lang')&&SI.defaultLang==='en')I.setLang('en');labels();drawAll()}
+labels();load();loadAll();
+</script></body></html>
