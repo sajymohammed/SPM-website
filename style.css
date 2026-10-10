@@ -32,7 +32,7 @@ input,select,textarea{font:inherit;color:var(--tx);background:#070d20;border:1px
 textarea{min-height:110px}.ck{display:flex;gap:8px;align-items:center}.ck input{width:auto}
 .msg{padding:10px 14px;border-radius:10px;font-size:.92rem;margin:8px 0}.msg.ok{background:#0e2a22;color:var(--ok)}.msg.er{background:#2a1119;color:var(--err)}
 .empty{color:var(--mut);text-align:center;padding:24px}
-.hp{position:absolute;left:-9999px;opacity:0;height:0}
+.hp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);opacity:0;pointer-events:none;padding:0;border:0}
 footer{border-top:1px solid var(--line);padding:26px 0;color:var(--mut);text-align:center;font-size:.9rem}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
@@ -65,3 +65,5 @@ img{max-width:100%}
 section{padding:56px 0}
 }
 @media(min-width:1200px){.grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}}
+
+html,body{max-width:100%;overflow-x:hidden}
